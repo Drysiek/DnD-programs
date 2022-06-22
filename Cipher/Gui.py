@@ -32,11 +32,11 @@ class CipherApp:
 
         self.input_text = tk.Text(self.window, wrap=tk.WORD)
         self.input_text.grid(row=1, column=0, columnspan=2)
-        self.input_text.configure(height=7, width=50)
+        self.input_text.configure(height=12, width=70)
 
-        self.output_text = tk.Text(self.window)
+        self.output_text = tk.Text(self.window, wrap=tk.WORD)
         self.output_text.grid(row=3, column=0, columnspan=2)
-        self.output_text.configure(height=7, width=50)
+        self.output_text.configure(height=12, width=70)
 
         button = tk.Button(self.window, command=self.encipher, text='Encipher')
         button.grid(row=2, column=0)
@@ -51,7 +51,7 @@ class CipherApp:
 
     def make_dictionary(self):
         iterator = 0
-        for i in range(33, 123):
+        for i in range(32, 123):
             self.dictionary.update({chr(i): iterator})
             iterator += 1
         for i in (260, 262, 280, 321, 323, 211, 346, 377, 379, 261, 263, 281, 322, 324, 243, 347, 378, 380):
@@ -65,15 +65,15 @@ class CipherApp:
         final_text = ''
         if text != '\n':
             if key != '':
-                # move = 0
+                iterator = 0
                 for i in range(len(text)):
                     if text[i] == '\n':
                         final_text += '\n'
-                    elif text[i] == ' ':
-                        final_text += ' '
+                        iterator = 0
                     else:
-                        final_text += list(self.dictionary)[(self.dictionary[key[i % key_size]] +
+                        final_text += list(self.dictionary)[(self.dictionary[key[iterator % key_size]] +
                                                              self.dictionary[text[i]]) % len(self.dictionary)]
+                        iterator += 1
                 self.output_text.delete(1.0, 'end')
                 self.output_text.insert(1.0, final_text)
             else:
@@ -88,15 +88,16 @@ class CipherApp:
         final_text = ''
         if text != '\n':
             if key != '':
-                move = 0
+                iterator = 0
                 for i in range(len(text)):
                     if text[i] == '\n':
                         final_text += '\n'
-                    elif text[i] == ' ':
-                        final_text += ' '
+                        iterator = 0
                     else:
                         final_text += list(self.dictionary)[(self.dictionary[text[i]] -
-                                                             self.dictionary[key[i % key_size]]) % len(self.dictionary)]
+                                                             self.dictionary[key[iterator % key_size]]) %
+                                                            len(self.dictionary)]
+                        iterator += 1
                 self.output_text.delete(1.0, 'end')
                 self.output_text.insert(1.0, final_text)
             else:
