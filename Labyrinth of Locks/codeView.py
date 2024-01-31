@@ -1,7 +1,8 @@
 from functools import partial
 
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QLineEdit
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QLineEdit, QLabel, QMessageBox
+from _decimal import getcontext, Decimal
 
 
 class CodeView:
@@ -9,14 +10,18 @@ class CodeView:
         self.app = QApplication([])
         self.codeViewWindow = QWidget()
         self.iconsViewWindow = QWidget()
-        self.line = QLineEdit("", self.codeViewWindow)
-        self.button = QPushButton('PyQt5 button xx', self.codeViewWindow)
+
+        self.label = QLabel('Enter your code', self.codeViewWindow)
+        self.line = QLineEdit('', self.codeViewWindow)
+        self.button = QPushButton('Enter the Labyrinth', self.codeViewWindow)
         self.iconButtons = None
         self.iconValues = None
         self.icons = []
+
         self.mode = 0
         self.rows = 0
         self.cols = 0
+        self.message = ''
 
         self.initialize_window()
 
@@ -24,14 +29,17 @@ class CodeView:
         self.codeViewWindow.setWindowTitle('Labyrinth of Locks')
         self.iconsViewWindow.setWindowTitle('Labyrinth of Locks')
 
-        self.line.setGeometry(50, 75, 400, 50)
+        self.label.setGeometry(25, 10, 435, 50)
+
+        self.line.setGeometry(25, 60, 425, 50)
 
         self.button.setToolTip('This is an example button xx')
-        self.button.setGeometry(200, 150, 200, 50)
+        self.button.setGeometry(250, 130, 200, 50)
         self.button.clicked.connect(self.code_view_on_click)
 
-        # self.iconsViewWindow tytuł
+        # self.iconsViewWindow tło dodać
 
+        self.codeViewWindow.setFixedSize(475, 200)
         self.codeViewWindow.show()
         self.app.exec_()
 
@@ -45,11 +53,13 @@ class CodeView:
     def create_icons_view(self):
         seed = self.get_icons_attributes()
 
-        self.iconButtons = [[QPushButton("", self.iconsViewWindow) for _ in range(self.cols)] for _ in range(self.rows)]
-        self.iconValues = [[0 for j in range(self.cols)] for i in range(self.rows)]
+        self.iconButtons = [[QPushButton('', self.iconsViewWindow) for _ in range(self.cols)] for _ in range(self.rows)]
+        self.iconValues = [[0 for _ in range(self.cols)] for _ in range(self.rows)]
 
         button_width = 150
         button_height = 150
+
+        getcontext().prec = 100
 
         self.icons.append(QIcon('images/img1.png'))
         self.icons.append(QIcon('images/img2.png'))
@@ -61,14 +71,16 @@ class CodeView:
                 self.iconButtons[i][j].setGeometry(j * button_width, i * button_height, button_width, button_height)
                 self.iconButtons[i][j].setIcon(self.icons[seed % self.mode])
                 self.iconValues[i][j] = seed % self.mode
-                seed = int(seed / self.mode)
+                seed = int(Decimal(seed) / Decimal(self.mode))
                 self.iconButtons[i][j].setIconSize(self.iconButtons[i][j].size())
                 self.iconButtons[i][j].clicked.connect(partial(self.on_click_icon, i, j))
+        self.message = seed.to_bytes(((seed.bit_length() + 7) // 8), byteorder="big").decode("utf-8)")
+        print(seed)
 
     def get_icons_attributes(self):
         line_value = self.line.text()
 
-        if line_value[0] in ("2", "3", "5", "7"):
+        if line_value[0] in ('2', '3', '5', '7'):
             self.mode = 2
         else:
             self.mode = 3
@@ -79,7 +91,6 @@ class CodeView:
         return int(line_value[5::1])
 
     def on_click_icon(self, x, y):
-        print(x, y)
         self.change_icon(x, y)
         if x > 0:
             self.change_icon(x - 1, y)
@@ -97,4 +108,12 @@ class CodeView:
         self.iconButtons[x][y].setIcon(self.icons[future_value])
 
     def check_for_victory(self):
-        pass
+        for row in range(self.rows):
+            for col in range(self.cols):
+                if self.iconValues[row][col] != 0:
+                    return False
+        msg = QMessageBox()
+        msg.setWindowTitle('Answer for Labyrinth')
+        msg.setText(self.message)
+        msg.exec_()
+    
