@@ -132,5 +132,4 @@ class CodeView:
             for j in reversed(range(self.cols)):
                 code *= self.mode
                 code += self.iconValues[i][j]
-                print(code)
         return code
